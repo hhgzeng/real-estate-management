@@ -90,7 +90,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'RealEstateManagement',
-        'USER': 'jing',
+        'USER': 'root',
         'PASSWORD': '040723',
         'HOST': 'localhost',
         'PORT': '3306',
