@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # 自定义应用
     'accounts',
-    'sales',
     'houses',
     'orders',
     'corsheaders',

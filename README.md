@@ -6,7 +6,7 @@
 
 ### 后端
 
-- Python 3.9
+- Python 3.13
 - Django 4.2.17
 - Django CORS Headers
 - PyMySQL
@@ -55,6 +55,7 @@ pip install -r requirements.txt
 4. 运行数据库迁移：
 
 ```bash
+python manage.py makemigrations
 python manage.py migrate
 ```
 
