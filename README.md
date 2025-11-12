@@ -11,6 +11,7 @@
 - Django CORS Headers
 - PyMySQL
 - QRCode
+
 ### 前端
 
 - Vue.js 3
