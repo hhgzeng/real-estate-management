@@ -17,7 +17,7 @@
 - Vue.js 3
 - Vue Router
 - Node.js
-- npm/yarn
+- npm
 
 ## 系统功能
 
@@ -34,16 +34,14 @@
 1. 进入后端目录：
 
 ```bash
-cd real_estate_backend
+cd backend
 ```
 
-2. 创建虚拟环境并激活：
+2. 创建环境并激活：
 
 ```bash
-python -m venv env
-source env/bin/activate  # Linux/Mac
-# 或
-.\env\Scripts\activate  # Windows
+conda create -n real_estate python=3.13
+conda activate real_estate
 ```
 
 3. 安装依赖：
@@ -70,32 +68,28 @@ python manage.py runserver
 1. 进入前端目录：
 
 ```bash
-cd real-estate-frontend
+cd frontend
 ```
 
 2. 安装依赖：
 
 ```bash
 npm install
-# 或
-yarn install
 ```
 
 3. 启动开发服务器：
 
 ```bash
 npm run serve
-# 或
-yarn serve
 ```
 
 ## 使用说明
 
 ### 用户角色
 
-- 管理员：系统管理、用户管理、数据统计
+- 管理员：系统管理、用户管理、数据统计、权限管理
 - 销售人员：房产管理、客户跟进、订单处理
-- 客户：浏览房产、预约看房、查看订单
+- 客户：浏览房产、预约看房、查看订单、查看个人信息
 
 ### 主要功能模块
 
