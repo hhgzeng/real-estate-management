@@ -1,9 +1,6 @@
 <template>
   <div class="admin-dashboard">
-    <div class="header">
-      <h2>欢迎回来，{{ username }}</h2>
-      <button class="logout-btn" @click="logout">退出登录</button>
-    </div>
+    <TopHeader :title="`欢迎回来，${username}`" @logout="logout" />
 
     <div class="main-content">
       <!-- 个人信息部分 -->
@@ -55,7 +52,7 @@
                 </option>
               </select>
             </div>
-            <button type="submit" class="submit-btn">创建房产</button>
+            <button type="submit" class="submit-btn" style="height: fit-content; align-self: end;">创建房产</button>
           </form>
         </div>
 
@@ -65,66 +62,19 @@
             <h3>在售房产</h3>
           </div>
           <div class="card">
-            <!-- 添加筛选功能 -->
-            <div class="filters">
-              <div class="filter-group">
-                <label>价格区间：</label>
-                <input 
-                  v-model.number="filters.minPrice" 
-                  type="number" 
-                  placeholder="最低价" 
-                />
-                <span>-</span>
-                <input 
-                  v-model.number="filters.maxPrice" 
-                  type="number" 
-                  placeholder="最高价" 
-                />
-              </div>
-              <div class="filter-group">
-                <label>面积区间：</label>
-                <input 
-                  v-model.number="filters.minArea" 
-                  type="number" 
-                  placeholder="最小面积" 
-                />
-                <span>-</span>
-                <input 
-                  v-model.number="filters.maxArea" 
-                  type="number" 
-                  placeholder="最大面积" 
-                />
-              </div>
-              <button class="filter-btn" @click="applyFilters">筛选</button>
-              <button class="reset-btn" @click="resetFilters">重置</button>
-            </div>
+            <HouseFilter @filter="handleFilter" />
 
-            <div class="houses-grid">
-              <div v-for="house in displayedHouses" :key="house.id" class="house-card">
-                <div class="house-info">
-                  <h4>房产编号: {{ house.id }}</h4>
-                  <div class="info-row">
-                    <span class="label">价格：</span>
-                    <span class="value price">¥ {{ formatPrice(house.price) }}</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="label">面积：</span>
-                    <span class="value">{{ house.area }}㎡</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="label">楼层：</span>
-                    <span class="value">{{ house.floor }}层</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="label">销售人员：</span>
-                    <span class="value">{{ house.salesperson_name }}</span>
-                  </div>
-                </div>
-                <div class="house-actions">
+            <div class="houses-grid" v-if="displayedHouses.length > 0">
+              <HouseCard 
+                v-for="house in displayedHouses" 
+                :key="house.id" 
+                :house="house"
+              >
+                <template #actions>
                   <button @click="editHouse(house)" class="edit-btn">修改</button>
                   <button @click="confirmDeleteHouse(house)" class="delete-btn">删除</button>
-                </div>
-              </div>
+                </template>
+              </HouseCard>
             </div>
 
             <div v-if="availableHouses.length > 8" class="show-more">
@@ -160,7 +110,7 @@
                 <td>{{ record.customer__username }}</td>
                 <td>{{ record.salesperson__username }}</td>
                 <td>{{ formatDate(record.order_date) }}</td>
-                <td class="price">¥{{ formatPrice(record.house__price) }}</td>
+                <td class="price">¥{{ record.house__price.toLocaleString('zh-CN') }}</td>
               </tr>
             </tbody>
           </table>
@@ -182,7 +132,7 @@
               <h4>添加销售人员</h4>
               <input v-model="newSalesperson.username" placeholder="用户名" required />
               <input v-model="newSalesperson.password" type="password" placeholder="密码" required />
-              <button type="submit" class="submit-btn">添加</button>
+              <button type="submit" class="submit-btn" style="width: fit-content; margin-top: 10px;">添加</button>
             </form>
 
             <form @submit.prevent="deleteSalesperson" class="form-group">
@@ -193,7 +143,7 @@
                   {{ sp.username }}
                 </option>
               </select>
-              <button type="submit" class="delete-btn">删除</button>
+              <button type="submit" class="delete-btn" style="width: fit-content; margin-top: 10px;">删除</button>
             </form>
           </div>
 
@@ -212,7 +162,7 @@
                 <td>{{ sp.id }}</td>
                 <td>{{ sp.username }}</td>
                 <td>{{ sp.sales_count }}单</td>
-                <td>¥{{ formatPrice(sp.sales_amount) }}</td>
+                <td>¥{{ sp.sales_amount.toLocaleString('zh-CN') }}</td>
               </tr>
             </tbody>
           </table>
@@ -265,19 +215,24 @@
 
 <script>
 import axios from 'axios';
-import ChangePassword from './ChangePassword.vue';
+import ChangePassword from '@/components/common/ChangePassword.vue';
+import TopHeader from '@/components/layout/TopHeader.vue';
+import HouseFilter from '@/components/house/HouseFilter.vue';
+import HouseCard from '@/components/house/HouseCard.vue';
 
 export default {
   name: 'AdminDashboardPage',
   components: {
     ChangePassword,
+    TopHeader,
+    HouseFilter,
+    HouseCard
   },
   data() {
     return {
       house: { price: '', area: '', floor: '', salespersonId: '' },
       houses: [],
       salesRecords: [],
-      displayedRecords: [],
       showAllRecords: false,
       showAllHouses: false,
       newSalesperson: { username: '', password: '' },
@@ -308,10 +263,10 @@ export default {
         const price = parseFloat(house.price);
         const area = parseFloat(house.area);
         
-        if (this.filters.minPrice && price < this.filters.minPrice) return false;
-        if (this.filters.maxPrice && price > this.filters.maxPrice) return false;
-        if (this.filters.minArea && area < this.filters.minArea) return false;
-        if (this.filters.maxArea && area > this.filters.maxArea) return false;
+        if (this.filters.minPrice !== '' && price < this.filters.minPrice) return false;
+        if (this.filters.maxPrice !== '' && price > this.filters.maxPrice) return false;
+        if (this.filters.minArea !== '' && area < this.filters.minArea) return false;
+        if (this.filters.maxArea !== '' && area > this.filters.maxArea) return false;
         
         return true;
       });
@@ -353,17 +308,8 @@ export default {
       }
     },
     async createHouse() {
-      // 验证输入数据
-      if (this.house.price < 0) {
-        alert('房产价格不能为负数！');
-        return;
-      }
-      if (this.house.area < 0) {
-        alert('房产面积不能为负数！');
-        return;
-      }
-      if (this.house.floor < 0) {
-        alert('楼层不能为负数！');
+      if (this.house.price < 0 || this.house.area < 0 || this.house.floor < 0) {
+        alert('数值不能为负数！');
         return;
       }
 
@@ -383,11 +329,7 @@ export default {
           alert(response.data.message || '创建房产失败！');
         }
       } catch (error) {
-        if (error.response) {
-          alert(`创建失败: ${error.response.data.message || '未知错误'}`);
-        } else {
-          alert('无法创建房产，请稍后重试。');
-        }
+        alert('无法创建房产，请稍后重试。');
       }
     },
     async fetchSalesRecords() {
@@ -413,15 +355,7 @@ export default {
           alert(response.data.message);
         }
       } catch (error) {
-        if (error.response && error.response.data) {
-          if (error.response.data.message === 'Username already exists') {
-            alert('创建失败：该用户名已存在，请使用其他用户名！');
-          } else {
-            alert(error.response.data.message || '创建失败，请稍后重试！');
-          }
-        } else {
-          alert('创建失败，请稍后重试！');
-        }
+        alert('创建失败，请稍后重试！');
       }
     },
     async deleteSalesperson() {
@@ -448,17 +382,8 @@ export default {
       this.showEditDialog = true;
     },
     async updateHouse() {
-      // 验证输入数据
-      if (this.editingHouse.price < 0) {
-        alert('房产价格不能为负数！');
-        return;
-      }
-      if (this.editingHouse.area < 0) {
-        alert('房产面积不能为负数！');
-        return;
-      }
-      if (this.editingHouse.floor < 0) {
-        alert('楼层不能为负数！');
+      if (this.editingHouse.price < 0 || this.editingHouse.area < 0 || this.editingHouse.floor < 0) {
+        alert('数值不能为负数！');
         return;
       }
 
@@ -482,10 +407,7 @@ export default {
       }
     },
     logout() {
-      localStorage.removeItem('role');
-      localStorage.removeItem('username');
-      localStorage.removeItem('userId');
-      this.$router.push('/');
+      // Handled by TopHeader
     },
     async initialize() {
       await Promise.all([
@@ -494,14 +416,8 @@ export default {
         this.fetchSalesRecords()
       ]);
     },
-    formatPrice(price) {
-      if (price === null || price === undefined || isNaN(price)) {
-        return '0';
-      }
-      return parseFloat(price).toLocaleString('zh-CN');
-    },
     async confirmDeleteHouse(house) {
-      if (confirm(`确定要删除房产 #${house.id} 吗？此操作不可撤销。`)) {
+      if (confirm(`确定要删除房产 #${house.id} 吗？`)) {
         try {
           const response = await axios.post(`http://localhost:8000/houses/delete_house/${house.id}/`);
           if (response.data.status === 'success') {
@@ -520,22 +436,11 @@ export default {
     },
     handlePasswordChanged() {
       this.showChangePassword = false;
-      // 可以添加其他处理逻辑，比如显示成功消息
     },
-    applyFilters() {
-      // 重置显示状态，确保从第一页开始显示
+    handleFilter(filters) {
+      this.filters = { ...filters };
       this.showAllHouses = false;
-    },
-    resetFilters() {
-      this.filters = {
-        minPrice: '',
-        maxPrice: '',
-        minArea: '',
-        maxArea: ''
-      };
-      // 重置显示状态
-      this.showAllHouses = false;
-    },
+    }
   },
 };
 </script>
@@ -545,18 +450,8 @@ export default {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.header h2 {
-  margin: 0;
-  color: #2c3e50;
+  background-color: #f5f5f5;
+  min-height: 100vh;
 }
 
 .main-content {
@@ -566,6 +461,11 @@ export default {
 
 .section {
   margin-bottom: 30px;
+}
+
+.section h3 {
+  color: #2c3e50;
+  margin-bottom: 15px;
 }
 
 .card {
@@ -578,8 +478,8 @@ export default {
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
+  gap: 20px;
+  align-items: flex-end;
 }
 
 .form-group {
@@ -594,20 +494,32 @@ export default {
 }
 
 input, select {
-  padding: 8px 12px;
+  padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 14px;
+}
+
+.submit-btn, .btn-primary {
+  background-color: #2196F3;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.submit-btn:hover, .btn-primary:hover {
+  opacity: 0.9;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
+  margin-top: 20px;
 }
 
-.data-table th,
-.data-table td {
+.data-table th, .data-table td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #eee;
@@ -618,38 +530,9 @@ input, select {
   font-weight: 600;
 }
 
-.submit-btn, .edit-btn, .delete-btn, .refresh-btn, .logout-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.3s;
-}
-
-.submit-btn {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.edit-btn {
-  background-color: #2196F3;
-  color: white;
-}
-
-.delete-btn {
-  background-color: #f44336;
-  color: white;
-}
-
-.refresh-btn {
-  background-color: #607D8B;
-  color: white;
-}
-
-.logout-btn {
-  background-color: #757575;
-  color: white;
+.price {
+  color: #e74c3c;
+  font-weight: bold;
 }
 
 .modal {
@@ -662,29 +545,23 @@ input, select {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .modal-content {
   background: white;
-  padding: 20px;
   border-radius: 8px;
+  padding: 20px;
   width: 90%;
   max-width: 500px;
+  position: relative;
 }
 
-.modal-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.cancel-btn {
-  background-color: #9e9e9e;
-  color: white;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
+.close {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  font-size: 24px;
   cursor: pointer;
 }
 
@@ -695,24 +572,46 @@ input, select {
   margin-bottom: 20px;
 }
 
+.houses-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.edit-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.delete-btn {
+  background-color: #f44336;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background-color: #9e9e9e;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
 .no-data {
   text-align: center;
   color: #666;
   padding: 20px;
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-@media (max-width: 768px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .salesperson-forms {
-    grid-template-columns: 1fr;
-  }
 }
 
 .show-more {
@@ -727,184 +626,6 @@ button:hover {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.3s;
-}
-
-.toggle-btn:hover {
-  background-color: #1976D2;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.delete-btn {
-  background-color: #f44336;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.delete-btn:hover {
-  opacity: 0.9;
-}
-
-.houses-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.house-card {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
-}
-
-.house-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.house-info {
-  margin-bottom: 15px;
-}
-
-.house-info h4 {
-  margin: 0 0 15px 0;
-  color: #2c3e50;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.label {
-  color: #666;
-}
-
-.value {
-  font-weight: 500;
-}
-
-.value.price {
-  color: #e74c3c;
-  font-weight: bold;
-}
-
-.house-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.edit-btn {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.edit-btn:hover {
-  background-color: #2980b9;
-}
-
-.delete-btn {
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.delete-btn:hover {
-  background-color: #c0392b;
-}
-
-.toggle-btn {
-  background-color: #2196F3;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.toggle-btn:hover {
-  background-color: #1976D2;
-}
-
-.no-data {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-
-.password-section {
-  margin: 20px 0;
-}
-
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  position: relative;
-  width: 90%;
-  max-width: 500px;
-}
-
-.close {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  font-size: 24px;
-  cursor: pointer;
-}
-
-.close:hover {
-  color: #666;
-}
-
-.user-info {
-  margin-bottom: 20px;
 }
 
 .info-grid {
@@ -922,90 +643,6 @@ button:hover {
 
 .info-item .label {
   color: #666;
-  min-width: 70px;
-}
-
-.info-item .value {
-  font-weight: 500;
-  color: #2c3e50;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn-primary:hover {
-  background-color: #0056b3;
-}
-
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #eee;
-}
-
-.filter-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.filter-group input {
-  width: 100px;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.filter-btn {
-  background-color: #2196F3;
-  color: white;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.reset-btn {
-  background-color: #9e9e9e;
-  color: white;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.filter-btn:hover {
-  background-color: #1976D2;
-}
-
-.reset-btn:hover {
-  background-color: #757575;
-}
-
-@media (max-width: 768px) {
-  .filters {
-    flex-direction: column;
-  }
-  
-  .filter-group {
-    width: 100%;
-  }
-  
-  .filter-group input {
-    flex: 1;
-  }
 }
 
 @media (max-width: 1200px) {

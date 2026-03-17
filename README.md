@@ -80,7 +80,7 @@ npm install
 3. 启动开发服务器：
 
 ```bash
-npm run serve
+npm run dev
 ```
 
 ## 使用说明
