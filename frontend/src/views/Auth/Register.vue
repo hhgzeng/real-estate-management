@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { register } from '@/api/auth';
 
 export default {
   name: 'RegisterPage',
@@ -52,7 +52,7 @@ export default {
       }
 
       try {
-        const response = await axios.post('http://localhost:8000/accounts/register/', {
+        const response = await register({
           username: this.username,
           password: this.password,
           role: this.role

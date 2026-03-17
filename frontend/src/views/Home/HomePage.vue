@@ -36,7 +36,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { getHouses } from '@/api/house';
 import TopHeader from '@/components/layout/TopHeader.vue';
 import HouseFilter from '@/components/house/HouseFilter.vue';
 import HouseCard from '@/components/house/HouseCard.vue';
@@ -84,7 +84,7 @@ export default {
     },
     async fetchHouses() {
       try {
-        const response = await axios.get('http://localhost:8000/houses/get_houses/');
+        const response = await getHouses();
         this.houses = response.data.filter(house => house.status === 'available');
         this.filteredResults = this.houses;
       } catch (error) {

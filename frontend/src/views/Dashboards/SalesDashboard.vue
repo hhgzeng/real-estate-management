@@ -246,7 +246,8 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { getMyHouses, createHouse, updateHouse } from '@/api/house';
+import { getSalesStats, getMySales } from '@/api/order';
 import ChangePassword from '@/components/common/ChangePassword.vue';
 import TopHeader from '@/components/layout/TopHeader.vue';
 import HouseFilter from '@/components/house/HouseFilter.vue';
@@ -352,7 +353,7 @@ export default {
       this.error.stats = '';
       try {
         const userId = localStorage.getItem('userId');
-        const response = await axios.get(`http://localhost:8000/orders/sales_stats/?salesperson_id=${userId}`);
+        const response = await getSalesStats(userId);
         if (response.data.status === 'success') {
           this.salesStats = {
             totalSales: response.data.totalSales,
@@ -372,7 +373,7 @@ export default {
       this.error.houses = '';
       try {
         const userId = localStorage.getItem('userId');
-        const response = await axios.get(`http://localhost:8000/houses/my_houses/?salesperson_id=${userId}`);
+        const response = await getMyHouses(userId);
         this.myHouses = response.data;
       } catch (error) {
         this.error.houses = '获取房产列表失败，请稍后重试';
@@ -385,7 +386,7 @@ export default {
       this.error.records = '';
       try {
         const userId = localStorage.getItem('userId');
-        const response = await axios.get(`http://localhost:8000/orders/my_sales/?salesperson_id=${userId}`);
+        const response = await getMySales(userId);
         this.salesRecords = response.data;
       } catch (error) {
         this.error.records = '获取销售记录失败，请稍后重试';
@@ -404,7 +405,7 @@ export default {
       }
 
       try {
-        const response = await axios.post(`http://localhost:8000/houses/update_house/${this.editingHouse.id}/`, {
+        const response = await updateHouse(this.editingHouse.id, {
           price: this.editingHouse.price,
           area: this.editingHouse.area,
           floor: this.editingHouse.floor,
@@ -436,7 +437,7 @@ export default {
       this.submitting = true;
       try {
         const userId = localStorage.getItem('userId');
-        const response = await axios.post('http://localhost:8000/houses/create_house/', {
+        const response = await createHouse({
           ...this.newHouse,
           salesperson_id: userId
         });

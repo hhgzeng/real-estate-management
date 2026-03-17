@@ -84,7 +84,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { login, register } from '@/api/auth';
 
 export default {
   name: 'LoginPage',
@@ -107,7 +107,7 @@ export default {
     async login() {
       try {
         this.error = '';
-        const response = await axios.post('http://localhost:8000/accounts/login/', {
+        const response = await login({
           username: this.loginForm.username,
           password: this.loginForm.password
         });
@@ -154,7 +154,7 @@ export default {
     async register() {
       try {
         this.error = '';
-        const response = await axios.post('http://localhost:8000/accounts/register/', {
+        const response = await register({
           username: this.registerForm.username,
           password: this.registerForm.password,
           role: this.registerForm.role

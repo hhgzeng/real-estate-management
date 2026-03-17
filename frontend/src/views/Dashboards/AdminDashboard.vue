@@ -214,7 +214,9 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { getHouses, createHouse, updateHouse, deleteHouse } from '@/api/house';
+import { getSalespeople, manageSalesperson } from '@/api/auth';
+import { getSalesRecords } from '@/api/order';
 import ChangePassword from '@/components/common/ChangePassword.vue';
 import TopHeader from '@/components/layout/TopHeader.vue';
 import HouseFilter from '@/components/house/HouseFilter.vue';
@@ -293,7 +295,7 @@ export default {
     },
     async fetchHouses() {
       try {
-        const response = await axios.get('http://localhost:8000/houses/get_houses/');
+        const response = await getHouses();
         this.houses = response.data;
       } catch (error) {
         alert('无法加载房产列表，请稍后重试！');
@@ -301,7 +303,7 @@ export default {
     },
     async fetchSalespeople() {
       try {
-        const response = await axios.get('http://localhost:8000/accounts/get_salespeople/');
+        const response = await getSalespeople();
         this.salespeople = response.data;
       } catch (error) {
         alert('无法加载销售人员列表，请稍后重试！');
@@ -314,7 +316,7 @@ export default {
       }
 
       try {
-        const response = await axios.post('http://localhost:8000/houses/create_house/', {
+        const response = await createHouse({
           price: this.house.price,
           area: this.house.area,
           floor: this.house.floor,
@@ -334,7 +336,7 @@ export default {
     },
     async fetchSalesRecords() {
       try {
-        const response = await axios.get('http://localhost:8000/orders/get_sales_records/');
+        const response = await getSalesRecords();
         this.salesRecords = response.data;
       } catch (error) {
         alert('无法加载销售记录，请稍后重试！');
@@ -342,7 +344,7 @@ export default {
     },
     async createSalesperson() {
       try {
-        const response = await axios.post('http://localhost:8000/accounts/manage_salesperson/', {
+        const response = await manageSalesperson({
           action: 'create',
           username: this.newSalesperson.username,
           password: this.newSalesperson.password
@@ -362,7 +364,7 @@ export default {
       if (!confirm('确定要删除这个销售人员吗？')) return;
       
       try {
-        const response = await axios.post('http://localhost:8000/accounts/manage_salesperson/', {
+        const response = await manageSalesperson({
           action: 'delete',
           salesperson_id: this.deleteSalespersonId
         });
@@ -388,7 +390,7 @@ export default {
       }
 
       try {
-        const response = await axios.post(`http://localhost:8000/houses/update_house/${this.editingHouse.id}/`, {
+        const response = await updateHouse(this.editingHouse.id, {
           price: this.editingHouse.price,
           area: this.editingHouse.area,
           floor: this.editingHouse.floor,
@@ -419,7 +421,7 @@ export default {
     async confirmDeleteHouse(house) {
       if (confirm(`确定要删除房产 #${house.id} 吗？`)) {
         try {
-          const response = await axios.post(`http://localhost:8000/houses/delete_house/${house.id}/`);
+          const response = await deleteHouse(house.id);
           if (response.data.status === 'success') {
             alert('房产删除成功！');
             this.fetchHouses();

@@ -121,7 +121,8 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { getHouses } from '@/api/house';
+import { getMyOrders, createPayment, createOrder } from '@/api/order';
 import ChangePassword from '@/components/common/ChangePassword.vue';
 import TopHeader from '@/components/layout/TopHeader.vue';
 import HouseFilter from '@/components/house/HouseFilter.vue';
@@ -189,7 +190,7 @@ export default {
     },
     async fetchHouses() {
       try {
-        const response = await axios.get('http://localhost:8000/houses/get_houses/');
+        const response = await getHouses();
         this.houses = response.data;
       } catch (error) {
         alert('获取房产列表失败，请稍后重试');
@@ -198,7 +199,7 @@ export default {
     async fetchOrders() {
       try {
         const userId = localStorage.getItem('userId');
-        const response = await axios.get(`http://localhost:8000/orders/my_orders/?customer_id=${userId}`);
+        const response = await getMyOrders(userId);
         this.orders = response.data;
       } catch (error) {
         alert('获取订单列表失败，请稍后重试');
@@ -209,7 +210,7 @@ export default {
       this.showPaymentDialog = true;
       
       try {
-        const response = await axios.post('http://localhost:8000/orders/create_payment/', {
+        const response = await createPayment({
           house_id: house.id,
           amount: house.price
         });
@@ -228,7 +229,7 @@ export default {
     },
     async confirmPayment() {
       try {
-        const orderResponse = await axios.post('http://localhost:8000/orders/create_order/', {
+        const orderResponse = await createOrder({
           house_id: this.selectedHouse.id,
           customer_id: localStorage.getItem('userId')
         });

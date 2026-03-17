@@ -38,7 +38,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { changePassword } from '@/api/auth';
 
 export default {
   name: 'ChangePassword',
@@ -70,7 +70,7 @@ export default {
 
       try {
         const userId = localStorage.getItem('userId'); // 从本地存储获取用户ID
-        const response = await axios.post('http://localhost:8000/accounts/change_password/', {
+        const response = await changePassword({
           user_id: userId,
           old_password: this.oldPassword,
           new_password: this.newPassword
