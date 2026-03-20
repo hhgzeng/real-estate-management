@@ -248,10 +248,10 @@
 <script>
 import { getMyHouses, createHouse, updateHouse } from '@/api/house';
 import { getSalesStats, getMySales } from '@/api/order';
-import ChangePassword from '@/components/common/ChangePassword.vue';
-import TopHeader from '@/components/layout/TopHeader.vue';
-import HouseFilter from '@/components/house/HouseFilter.vue';
-import HouseCard from '@/components/house/HouseCard.vue';
+import ChangePassword from '@/components/common/change-password.vue';
+import TopHeader from '@/components/layout/top-header.vue';
+import HouseFilter from '@/components/house/house-filter.vue';
+import HouseCard from '@/components/house/house-card.vue';
 
 export default {
   name: 'SalesDashboard',

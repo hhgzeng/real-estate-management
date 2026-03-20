@@ -37,9 +37,9 @@
 
 <script>
 import { getHouses } from '@/api/house';
-import TopHeader from '@/components/layout/TopHeader.vue';
-import HouseFilter from '@/components/house/HouseFilter.vue';
-import HouseCard from '@/components/house/HouseCard.vue';
+import TopHeader from '@/components/layout/top-header.vue';
+import HouseFilter from '@/components/house/house-filter.vue';
+import HouseCard from '@/components/house/house-card.vue';
 
 export default {
   name: 'HomePage',

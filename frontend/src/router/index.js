@@ -1,12 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 // 引入组件
-import HomePage from '@/views/Home/HomePage.vue';
-import LoginPage from '@/views/Auth/Login.vue';
-import RegisterPage from '@/views/Auth/Register.vue';
-import AdminDashboardPage from '@/views/Dashboards/AdminDashboard.vue';
-import SalesDashboardPage from '@/views/Dashboards/SalesDashboard.vue';
-import CustomerDashboardPage from '@/views/Dashboards/CustomerDashboard.vue';
+import HomePage from '@/views/home/home-page.vue';
+import LoginPage from '@/views/auth/login.vue';
+import RegisterPage from '@/views/auth/register.vue';
+import AdminDashboardPage from '@/views/dashboards/admin-dashboard.vue';
+import SalesDashboardPage from '@/views/dashboards/sales-dashboard.vue';
+import CustomerDashboardPage from '@/views/dashboards/customer-dashboard.vue';
 
 // 定义路由
 const routes = [
